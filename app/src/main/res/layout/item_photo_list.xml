@@ -3,4 +3,35 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <TextView
+        android:id="@+id/txtID"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Id"
+        android:textSize="@dimen/_16sdp"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@+id/px_thumbnailUrl"/>
+
+    <TextView
+        android:id="@+id/px_thumbnailUrl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="150 x 150"
+        android:textSize="@dimen/_16sdp"/>
+
+    <TextView
+        android:id="@+id/txtTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/px_thumbnailUrl"
+        android:text="nihil at amet non hic quia qui"
+        android:textSize="@dimen/_16sdp"
+        android:layout_centerHorizontal="true"/>
+
 </RelativeLayout>
