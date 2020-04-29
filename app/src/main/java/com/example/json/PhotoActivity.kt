@@ -4,6 +4,10 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.json.Adapter.PhotoAdapter
+import kotlinx.android.synthetic.main.activity_photo.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -15,13 +19,14 @@ import java.net.URL
 
 class PhotoActivity : AppCompatActivity() {
     private val tag: String = "PhotoActivity"
+    private val rclPhoto: RecyclerView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photo)
 
         getData(this).execute()
-        //rclPhoto.layoutManager = GridLayoutManager(this, 4)
+        rclPhoto?.layoutManager = GridLayoutManager(this, 4)
     }
 
     class getData(private var activity: PhotoActivity?) : AsyncTask<String, String, String>() {
@@ -31,7 +36,6 @@ class PhotoActivity : AppCompatActivity() {
             try {
                 val url = URL("https://jsonplaceholder.typicode.com/photos")
                 val httpURLConnection = url.openConnection() as HttpURLConnection
-
 
 //                httpURLConnection.requestMethod = "GET"
 //                httpURLConnection.setRequestProperty("User-Agent","Mozilla/5.0")
@@ -61,6 +65,7 @@ class PhotoActivity : AppCompatActivity() {
 
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
+            val photoList = ArrayList<String>()
             try{
 
                 val array = JSONArray(result.toString())
@@ -72,17 +77,13 @@ class PhotoActivity : AppCompatActivity() {
                     val url = jsonObject.getString("url")
                     val thumbnailUrl = jsonObject.getString("thumbnailUrl")
 
-//                    photos.add(
-//                        Photo(
-//                            albumId, id, title, url, thumbnailUrl
-//                        )
-//                    )
+                    val photo = PhotoDataModel(albumId, id, title, url, thumbnailUrl)
+                    photoList.add(photo.toString())
 
                     Log.d(activity?.tag, "albumId:$albumId, id:$id, title:$title, url:$url, thumbnailUrl:$thumbnailUrl")
                 }
 
-                //rclPhoto.adapter = PhotoAdapter(    )
-
+                activity?.rclPhoto?.adapter = PhotoAdapter(photoList)
 
             }
             catch (ex: Exception) {
@@ -93,4 +94,3 @@ class PhotoActivity : AppCompatActivity() {
 
     }
 }
-
