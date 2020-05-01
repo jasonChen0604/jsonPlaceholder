@@ -3,11 +3,12 @@ package com.example.json
 import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.json.Adapter.PhotoAdapter
-import kotlinx.android.synthetic.main.activity_photo.*
+import com.example.json.PhotoActivity.getData.AsyncResponse
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -21,16 +22,74 @@ class PhotoActivity : AppCompatActivity() {
     private val tag: String = "PhotoActivity"
     private val rclPhoto: RecyclerView? = null
 
+    var asyncTask: AsyncTask<String, String, String>? = getData(object : AsyncResponse {
+        override fun processFinish(output: ArrayList<PhotoDataModel>) {
+            rclPhoto?.adapter = PhotoAdapter(output)
+        }
+    }).execute()
+
+    /* Coroutines 1
+    private var job: Job? = null
+     */
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photo)
 
+        /* Coroutines 2
+        job = GlobalScope.launch(Dispatchers.IO) {
+            // Do something in the background
+        }*/
+
         getData(this).execute()
         rclPhoto?.layoutManager = GridLayoutManager(this, 4)
+
+        rclPhoto?.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                TODO("Not yet implemented")
+            }
+
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {
+                TODO("Not yet implemented")
+            }
+            //var intent = Intent(this, ItemActivity::class.java)
+            //intent.putExtra("imgResult", imagePath)
+            //intent.putExtra("idResult", holder.txtID.text!!)
+            //intent.putExtra("titleResult", holder.txtTitle.text!!)
+            //content.startActivity(intent)
+
+        })
     }
 
-    class getData(private var activity: PhotoActivity?) : AsyncTask<String, String, String>() {
+    /* Coroutines 3
+    override fun onDestroy() {
+        job?.cancel()
+        super.onDestroy()
+    }*/
 
+    class getData(private var activity: PhotoActivity) : AsyncTask<String, String, String>() {
+        constructor(activity: PhotoActivity.getData.AsyncResponse) : this(PhotoActivity()) ////////
+
+
+        interface AsyncResponse {
+            fun processFinish(output: ArrayList<PhotoDataModel>)
+        }
+
+        var delegate: AsyncResponse? = null
+
+        fun getData(delegate: AsyncResponse?) {
+            this.delegate = delegate
+        }
+
+        val photoList = ArrayList<PhotoDataModel>()
+//        var delegate: AsyncResponse? = null
+//        fun constructor(delegate: AsyncResponse?) {
+//            this.delegate = delegate
+//        }
         override fun doInBackground(vararg params: String?): String {
             val json = StringBuffer()
             try {
@@ -52,8 +111,8 @@ class PhotoActivity : AppCompatActivity() {
                     var line = bReader.readLine()
 
                     while (line != null) {
-                        json.append(line);
-                        line = bReader.readLine();
+                        json.append(line)
+                        line = bReader.readLine()
                     }
                 }
             } catch (ex: Exception) {
@@ -65,9 +124,10 @@ class PhotoActivity : AppCompatActivity() {
 
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
-            val photoList = ArrayList<String>()
+//            val photoList = ArrayList<String>()
+//            val photoList = ArrayList<String>()
+            val photoList: ArrayList<PhotoDataModel> = ArrayList()
             try{
-
                 val array = JSONArray(result.toString())
                 for (i in 0 until array.length()) {
                     val jsonObject: JSONObject = array.getJSONObject(i)
@@ -78,13 +138,19 @@ class PhotoActivity : AppCompatActivity() {
                     val thumbnailUrl = jsonObject.getString("thumbnailUrl")
 
                     val photo = PhotoDataModel(albumId, id, title, url, thumbnailUrl)
-                    photoList.add(photo.toString())
+//                    photoList.add(photo.toString())
+//
+//                    Log.d(activity?.tag, "albumId:$albumId, id:$id, title:$title, url:$url, thumbnailUrl:$thumbnailUrl")
+//                }
+//
+//                activity?.rclPhoto?.adapter = PhotoAdapter(photoList)
+
+                    this.photoList.add(photo)
 
                     Log.d(activity?.tag, "albumId:$albumId, id:$id, title:$title, url:$url, thumbnailUrl:$thumbnailUrl")
                 }
-
-                activity?.rclPhoto?.adapter = PhotoAdapter(photoList)
-
+                delegate?.processFinish(photoList)
+                //activity?.rclPhoto?.adapter = PhotoAdapter(photoList)
             }
             catch (ex: Exception) {
                 Log.d("", "Error in onPostExecute " + ex.message)
@@ -93,4 +159,10 @@ class PhotoActivity : AppCompatActivity() {
         }
 
     }
+
 }
+
+//interface AsyncResponse {
+//    fun processFinish(output: ArrayList<PhotoDataModel>)
+//}
+
