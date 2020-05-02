@@ -1,14 +1,17 @@
 package com.example.json
 
+import android.content.Intent
 import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
+import android.view.GestureDetector
 import android.view.MotionEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.json.Adapter.PhotoAdapter
 import com.example.json.PhotoActivity.getData.AsyncResponse
+import kotlinx.android.synthetic.main.item_photo_list.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -28,6 +31,7 @@ class PhotoActivity : AppCompatActivity() {
         }
     }).execute()
 
+
     /* Coroutines 1
     private var job: Job? = null
      */
@@ -45,22 +49,43 @@ class PhotoActivity : AppCompatActivity() {
         rclPhoto?.layoutManager = GridLayoutManager(this, 4)
 
         rclPhoto?.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
+            var gestureDetector = GestureDetector(this@PhotoActivity, object : GestureDetector.SimpleOnGestureListener(){
+                override fun onSingleTapUp(e: MotionEvent?): Boolean {
+                    return true
+                }
+            })
             override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {
-                TODO("Not yet implemented")
             }
 
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
-                TODO("Not yet implemented")
+                val child = rv.findChildViewUnder(e.x, e.y)
+                if (child != null && gestureDetector.onTouchEvent(e)){
+                    val position = rv.getChildAdapterPosition(child)
+
+                    val photoList = ArrayList<PhotoDataModel>()
+                    val adapter = PhotoAdapter(photoList)
+
+                    val itemID = adapter.list[position].getID()
+                    val itemTitle = adapter.list[position].getTitle()
+                    val itemUrl = adapter.list[position].getUrl()
+
+                    val intent = Intent(this@PhotoActivity, ItemActivity::class.java)
+                    intent.putExtra("itemID", itemID)
+                    intent.putExtra("itemTitle", itemTitle)
+                    intent.putExtra("itemUrl", itemUrl)
+
+                    startActivity(intent)
+                }
+                return false
             }
 
             override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {
-                TODO("Not yet implemented")
             }
             //var intent = Intent(this, ItemActivity::class.java)
             //intent.putExtra("imgResult", imagePath)
             //intent.putExtra("idResult", holder.txtID.text!!)
             //intent.putExtra("titleResult", holder.txtTitle.text!!)
-            //content.startActivity(intent)
+            //startActivity(intent)
 
         })
     }
@@ -124,9 +149,8 @@ class PhotoActivity : AppCompatActivity() {
 
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
-//            val photoList = ArrayList<String>()
-//            val photoList = ArrayList<String>()
-            val photoList: ArrayList<PhotoDataModel> = ArrayList()
+            val photoList = ArrayList<PhotoDataModel>()
+//            val photoList: List<PhotoDataModel> = ArrayList()
             try{
                 val array = JSONArray(result.toString())
                 for (i in 0 until array.length()) {
@@ -139,12 +163,6 @@ class PhotoActivity : AppCompatActivity() {
 
                     val photo = PhotoDataModel(albumId, id, title, url, thumbnailUrl)
 //                    photoList.add(photo.toString())
-//
-//                    Log.d(activity?.tag, "albumId:$albumId, id:$id, title:$title, url:$url, thumbnailUrl:$thumbnailUrl")
-//                }
-//
-//                activity?.rclPhoto?.adapter = PhotoAdapter(photoList)
-
                     this.photoList.add(photo)
 
                     Log.d(activity?.tag, "albumId:$albumId, id:$id, title:$title, url:$url, thumbnailUrl:$thumbnailUrl")
